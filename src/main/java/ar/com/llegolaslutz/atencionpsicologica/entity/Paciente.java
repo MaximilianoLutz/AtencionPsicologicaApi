@@ -18,7 +18,7 @@ public class Paciente implements Serializable {
 	
 	@Id @GeneratedValue(generator="system-uuid")
 	@GenericGenerator(name="system-uuid", strategy = "uuid")
-	@Column(name="id_paciente")
+	@Column(name="id")
     private String id;
     private String nombre;
     private String apellido;
