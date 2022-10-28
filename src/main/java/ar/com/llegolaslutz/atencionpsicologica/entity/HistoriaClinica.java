@@ -25,7 +25,6 @@ public class HistoriaClinica implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	
 	@DateTimeFormat
 	private LocalDate date;
 
@@ -34,10 +33,9 @@ public class HistoriaClinica implements Serializable {
 	private String data;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-	@JoinColumn(name = "paciente_historia_id")
+	@JoinColumn(name = "paciente_historia_id", referencedColumnName = "id")
 	@JsonBackReference
 	private Paciente idPaciente;
-	
 
 	public Long getId() {
 		return id;

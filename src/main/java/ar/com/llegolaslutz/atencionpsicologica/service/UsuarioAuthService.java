@@ -12,18 +12,19 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.UserAuth;
 import ar.com.llegolaslutz.atencionpsicologica.repository.I_UserAuthRepository;
 
-@Service									//Interfaz de spring security
+@Component							//Interfaz de spring security
 public class UsuarioAuthService implements UserDetailsService{
 	
 	private Logger logger = LoggerFactory.getLogger(UsuarioAuthService.class);
 	
-	@Autowired
+	@Autowired(required = true)
 	public I_UserAuthRepository userAuth;
 	
 

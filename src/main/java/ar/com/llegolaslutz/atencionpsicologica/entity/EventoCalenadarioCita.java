@@ -17,7 +17,7 @@ public class EventoCalenadarioCita implements Serializable {
 	@GenericGenerator(name = "system-uuid", strategy = "uuid")
 	private String id;
 	private String idProfesional;
-	private Long idPaciente;
+	private String idPaciente;
 	private LocalDateTime start;
 	private LocalDateTime end;
 	private String title;
@@ -39,11 +39,11 @@ public class EventoCalenadarioCita implements Serializable {
 		this.idProfesional = idProfesional;
 	}
 
-	public Long getIdPaciente() {
+	public String getIdPaciente() {
 		return idPaciente;
 	}
 
-	public void setIdPaciente(Long idPaciente) {
+	public void setIdPaciente(String idPaciente) {
 		this.idPaciente = idPaciente;
 	}
 
