@@ -106,8 +106,12 @@ public class ProfesionalController {
 		
 		if (profesional.getuAuth() == null)
 			return null;
-		
+		try {
 		return pacienteService.saveProfesional(profesional);
+		} catch(Exception ex) {
+			logger.error(ex);
+			return new Profesional();
+		}
 	}
 
 	@GetMapping("/profesional/{id}")

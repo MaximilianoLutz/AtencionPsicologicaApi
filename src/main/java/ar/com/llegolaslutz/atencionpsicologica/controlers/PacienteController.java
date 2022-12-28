@@ -2,13 +2,17 @@ package ar.com.llegolaslutz.atencionpsicologica.controlers;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,278 +36,296 @@ import ar.com.llegolaslutz.atencionpsicologica.entity.HistoriaClinica;
 import ar.com.llegolaslutz.atencionpsicologica.entity.Paciente;
 import ar.com.llegolaslutz.atencionpsicologica.entity.Profesional;
 import ar.com.llegolaslutz.atencionpsicologica.service.I_PacienteService;
+import ar.com.llegolaslutz.atencionpsicologica.utils.GeneratePdfReport;
 
-
-
-@CrossOrigin(origins = "*", methods= {RequestMethod.GET,RequestMethod.POST, RequestMethod.PUT})
+@CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT })
 @RestController
 @RequestMapping("/api")
 public class PacienteController {
-	
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	@Autowired 
+	@Autowired
 	public I_PacienteService pacienteService;
-	
-	@Secured({"ROLE_ADMIN", "ROLE_USER"})
+
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
 	@GetMapping("/check_token")
-	public String checkToken(){
+	public String checkToken() {
 		String ok = "true";
 		return ok;
 	}
-	
-	@Secured({"ROLE_ADMIN", "ROLE_USER"})
+
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
 	@GetMapping("/pacientes")
-	public List<Paciente> getAll(){
+	public List<Paciente> getAll() {
 		return pacienteService.findAll();
 	}
-	
-	@Secured({"ROLE_ADMIN", "ROLE_USER"}) // si no pongo nada la ruta seria publica
+
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
 	@GetMapping("/pacientes/{id}")
-	public Paciente getById(@PathVariable String id) {		
+	public Paciente getById(@PathVariable String id) {
 		return pacienteService.getPacienteById(id);
 	}
-	
-	@GetMapping("/pacientesP/{idHex}")
-	public List<Paciente> getByIdP(@PathVariable String idHex) {		
-		
-		//String idHex = "1234";
-		Profesional profe =  
-				pacienteService
-				.findAllProfesional()
-				.stream().filter(p -> p.getIdHex().equals(idHex)).findAny().orElse(new Profesional());
-		
-		logger.info(profe);
-		
-		
-		 
-		 return profe.getPacientes();
+
+	/**
+	 * Retorna lista de pacientes activos. Unicamente con los datos del paciente(id,
+	 * Nombre, Apellido, DNI) Para obtener el resto de los datos de paciente
+	 * referirse al Metodo getById
+	 */
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
+	@GetMapping("/pacientesAllActive/{idHex}")
+	public List<Paciente> getPacientesActiveByProfesional(@PathVariable String idHex) {
+
+		try {
+
+			Profesional profesional = pacienteService.findAllProfesional().stream()
+					.filter(p -> p.getIdHex().equals(idHex)).findAny().orElse(new Profesional());
+
+			return profesional.getPacientes().stream().filter(p -> (p.isAcitve() == true))
+					.map(p -> new Paciente(p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.isAcitve()))
+					.collect(Collectors.toList());
+		} catch (Exception ex) {
+			return new ArrayList<Paciente>();
+		}
 	}
-	
+
+	/**
+	 * Retorna lista de pacientes inactivos. Unicamente con los datos del
+	 * paciente(id, Nombre, Apellido, DNI) Para obtener el resto de los datos de
+	 * paciente referirse al Metodo getById
+	 */
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
+	@GetMapping("/pacientesAllInactive/{idHex}")
+	public List<Paciente> getPacientesInactiveByProfesional(@PathVariable String idHex) {
+
+		try {
+
+			Profesional profesional = pacienteService.findAllProfesional().stream()
+					.filter(p -> p.getIdHex().equals(idHex)).findAny().orElse(new Profesional());
+
+			return profesional.getPacientes().stream().filter(p -> (p.isAcitve() == false))
+					.map(p -> new Paciente(p.getId(), p.getNombre(), p.getApellido(), p.getDni(), p.isAcitve()))
+					.collect(Collectors.toList());
+		} catch (Exception ex) {
+			return new ArrayList<Paciente>();
+		}
+	}
+
+	/**
+	 * 
+	 * @param paciente
+	 * @return Paciente
+	 */
 	@PostMapping("/pacientes")
-	@ResponseStatus(HttpStatus.CREATED) // x default es 200 .OK
+	@ResponseStatus(HttpStatus.CREATED)
 	public Paciente save(@RequestBody Paciente paciente) {
-		Contacto c = new Contacto();
-		logger.info(paciente.getP().getIdHex());
-		paciente.setP(pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex()));
-		logger.info("---------------------------------------------------------------");
-		logger.info(paciente);
-//		c.setCiut(paciente.getContacto().getCiut());
-//		c.setEmail(paciente.getContacto().getEmail());
-//		c.setDireccion(paciente.getContacto().getDireccion());
-//		c.setObraSocial(paciente.getContacto().getObraSocial());
-//		paciente.setContacto(c);
-//		logger.info(c);
-		return pacienteService.savePaciente(paciente);		
-		
+
+		try {
+			return pacienteService.savePaciente(paciente);
+
+		} catch (Exception ex) {
+			logger.error(ex);
+			return new Paciente();
+		}
+
 	}
-	
+
+	// Revisar
 	@PutMapping("/pacientes")
-	@ResponseStatus(HttpStatus.CREATED) 
+	@ResponseStatus(HttpStatus.CREATED)
 	public Paciente update(@RequestBody Paciente paciente) {
 		logger.info(paciente);
 		Paciente pacienteActual = pacienteService.getPacienteById(paciente.getId());
-		
+
 		pacienteActual.setNombre(paciente.getNombre());
 		pacienteActual.setApellido(paciente.getApellido());
 		pacienteActual.setDni(paciente.getDni());
-	
-		
+
 		logger.info(pacienteActual);
-		//paciente.setContacto();
-		
+
 		return pacienteService.savePaciente(pacienteActual);
 	}
-	
-	@PostMapping("/datos")
-	@ResponseStatus(HttpStatus.CREATED)
-	public DatosFiliatorios saveDatos(@RequestBody Paciente paciente) {
-		
-		//solo podra acceder a los pacientes del usuario activo
-		Profesional profe =  pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-			
-			logger.info(profe);
-			
-			Paciente pacienteDb  = profe.getPacientes()
-							.stream()
-							.filter(p -> p.getId() == paciente.getId()).findAny().orElse(null);
-			
-			if(pacienteDb.getDatosFiliatorios() != null) {
-				if(pacienteDb.getDatosFiliatorios().getId() > 0) logger.info(pacienteDb.getDatosFiliatorios().getId());
 
-				
-				logger.info("------------- hay ctacto ----------");
-				
-				paciente.getDatosFiliatorios().setId(pacienteDb.getDatosFiliatorios().getId());
-				pacienteDb.setDatosFiliatorios(paciente.getDatosFiliatorios());
-				logger.info(pacienteDb.getDatosFiliatorios());
-				return pacienteService.saveDatosFiliatorios(pacienteDb.getDatosFiliatorios());
-				
-				
-			}
-			DatosFiliatorios datos = paciente.getDatosFiliatorios();
-			datos.setIdPaciente(pacienteDb);
-			
-			logger.info("-----------------nulll---------------------------");
-			logger.info(pacienteDb.getDatosFiliatorios());
-			
-			
-			return pacienteService.saveDatosFiliatorios(datos);
-		
-		
-	}
+
+	/**
+	 * Utilizado para guardar y actualizar datos filiatorios del paciente
+	 * @param paciente
+	 * @return DatosFiliatorios
+	 */
 	@PutMapping("/datos")
 	@ResponseStatus(HttpStatus.CREATED)
 	public DatosFiliatorios updateDatos(@RequestBody Paciente paciente) {
 		
-		//solo podra acceder a los pacientes del usuario activo
-		Profesional profe =  pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-			
-			logger.info(profe);
-			
-			Paciente pacienteDb  = profe.getPacientes()
-							.stream()
-							.filter(p -> p.getId() == paciente.getId()).findAny().orElse(null);
-			
-			if(pacienteDb.getDatosFiliatorios() != null) {
-				if(pacienteDb.getDatosFiliatorios().getId() > 0) logger.info(pacienteDb.getDatosFiliatorios().getId());
+		try {
+		// filtro para unicamente acceder a los pacientes del usuario activo
+		Profesional profe = pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
 
-				
-				logger.info("------------- hay ctacto ----------");
-				
-				paciente.getDatosFiliatorios().setId(pacienteDb.getDatosFiliatorios().getId());
-				paciente.getDatosFiliatorios().setIdPaciente(pacienteDb);
-				pacienteDb.setDatosFiliatorios(paciente.getDatosFiliatorios());
-				logger.info(pacienteDb.getDatosFiliatorios());
-				return pacienteService.saveDatosFiliatorios(pacienteDb.getDatosFiliatorios());
-				
-				
-			}
-			
-			DatosFiliatorios datos = paciente.getDatosFiliatorios();
-			datos.setIdPaciente(pacienteDb);
-			
-			logger.info("-----------------nulll---------------------------");
+		Paciente pacienteDb = profe.getPacientes().stream().filter(p -> p.getId().equals(paciente.getId())).findAny()
+				.orElse(null);
+
+		//Actualizar
+		if (pacienteDb.getDatosFiliatorios() != null) {
+			if (pacienteDb.getDatosFiliatorios().getId() > 0)
+				logger.info(pacienteDb.getDatosFiliatorios().getId());
+
+			paciente.getDatosFiliatorios().setId(pacienteDb.getDatosFiliatorios().getId());
+			paciente.getDatosFiliatorios().setIdPaciente(pacienteDb);
+			pacienteDb.setDatosFiliatorios(paciente.getDatosFiliatorios());
 			logger.info(pacienteDb.getDatosFiliatorios());
-			
-			
-			return pacienteService.saveDatosFiliatorios(datos);
+			return pacienteService.saveDatosFiliatorios(pacienteDb.getDatosFiliatorios());
+
+		}
 		
+		//Guardar
+		DatosFiliatorios datos = paciente.getDatosFiliatorios();
+		datos.setIdPaciente(pacienteDb);
+
+		return pacienteService.saveDatosFiliatorios(datos);
 		
+		} catch (Exception ex) {
+			logger.error(ex);
+			return new DatosFiliatorios();
+		}
+
 	}
 	
+	
+	/**
+	 * Utilizado para guardar y actualizar datos de contacto del paciente
+	 * @param paciente
+	 * @return Contacto
+	 */
 	@PutMapping("/contacto")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Contacto saveContacto(@RequestBody Paciente paciente) {
-		//solo podra acceder a los pacientes del usuario activo
-			Profesional profe =  pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-				
-				logger.info(profe);
-				
-				Paciente pacienteDb  = profe.getPacientes()
-								.stream()
-								.filter(p -> p.getId() == paciente.getId()).findAny().orElse(null);
-				
+		
+		// filtro para unicamente acceder a los pacientes del usuario activo
+		Profesional profe = pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
 
-				
-				if(pacienteDb.getContacto() != null) {
-					if(pacienteDb.getContacto().getId() > 0) logger.info(pacienteDb.getContacto().getId());
+		logger.info(profe);
 
-					
-					logger.info("------------- hay ctacto ----------");
-					paciente.getContacto().setId(pacienteDb);
-					pacienteDb.setContacto(paciente.getContacto());
-					
-					logger.info(pacienteDb.getContacto());
-					return pacienteService.saveContacto(pacienteDb.getContacto());
-					
-					
-				}
-				Contacto contacto = paciente.getContacto();
-				contacto.setIdPaciente(pacienteDb);
-				
-				logger.info("-----------------nulll---------------------------");
-				logger.info(pacienteDb.getContacto());
-				
-				
-				return pacienteService.saveContacto(contacto);
+		Paciente pacienteDb = profe.getPacientes().stream().filter(p -> p.getId().equals(paciente.getId())).findAny()
+				.orElse(null);
+		
+		//Actualizar datos
+		if (pacienteDb.getContacto() != null) {
+			if (pacienteDb.getContacto().getId() > 0)
+		
+			paciente.getContacto().setId(pacienteDb);
+			pacienteDb.setContacto(paciente.getContacto());
 
-				
+			logger.info(pacienteDb.getContacto());
+			return pacienteService.saveContacto(pacienteDb.getContacto());
+
+		}
+		//Guardar datos
+		Contacto contacto = paciente.getContacto();
+		contacto.setIdPaciente(pacienteDb);
+
+		return pacienteService.saveContacto(contacto);
+
 	}
-	
-	//HISTORIA CLINICA
-	
+
+	// HISTORIA CLINICA
+
 	@PostMapping("/historia")
 	public HistoriaClinica saveHistoria(@RequestBody HistoriaClinica historia) {
-		if(historia.getIdPaciente() == null) return new HistoriaClinica();
-		
-		
+		if (historia.getIdPaciente() == null)
+			return new HistoriaClinica();
+
 		LocalDate fecha = LocalDate.from(historia.getDate());
-		 
+
 		int compare = fecha.compareTo(LocalDate.now());
 		logger.info(fecha);
 		logger.info(compare);
 
 		return pacienteService.saveHistoria(historia);
 	}
-	
-	@GetMapping("/historia")
-	public String getHistoria(@RequestBody HistoriaClinica historia, Model model) {
-		
-		HistoriaClinica historiaDb = pacienteService.getHistoriaByDate(historia.getIdPaciente(), historia.getDate());
-		
-		if(historiaDb == null) return null;
-		
-		model.addAttribute("historia", historiaDb);
-		
-		return "historia/ver";
-	}
-	
-	@GetMapping("/historia/{date}{idPaciente}")
-	public ResponseEntity<Resource> getHistoriaPdf(@PathVariable LocalDate date, @PathVariable String idPaciente ) {
-		
-		Paciente paciente = pacienteService.getPacienteById(idPaciente); 
-		
-		HistoriaClinica historiaDb = pacienteService.getHistoriaByDate(paciente, date);
-		
-		Profesional profesional = pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-		
-		return  null;
-	}
-	
-	@GetMapping("/historias/{idPaciente}")
-	public List<HistoriaClinica> getHistoriaPdfAll(@PathVariable String idPaciente) {
-		Paciente paciente = pacienteService.getPacienteById(idPaciente); 
-		
-		List<HistoriaClinica> historiasDb = pacienteService.getAllHistoriaByPaciente(paciente);
-		
-		return historiasDb;
-	}
-	
-	//PDF
-	
-//	@RequestMapping(value = "/historiaspdf/{idPaciente}", method = RequestMethod.GET,
-//            produces = MediaType.APPLICATION_PDF_VALUE)
-//    public ResponseEntity<InputStreamResource> citiesReport(@PathVariable Long idPaciente) {
-//		
-//		Paciente paciente = pacienteService.getById(idPaciente); 
+
+
+//	@GetMapping("/historia/{date}{idPaciente}")
+//	public ResponseEntity<Resource> getHistoriaByDate(@PathVariable LocalDate date, @PathVariable Paciente paciente) {
 //
-//		List<HistoriaClinica> historiasDb = pacienteService.getAllHistoriaByPaciente(paciente);
-//		
+//		try {
+//
+//		HistoriaClinica historiaDb = pacienteService.getHistoriaByDate(paciente, date);
+//
 //		Profesional profesional = pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
 //
-//        ByteArrayInputStream bis = GeneratePdfReport.historiaClinica(historiasDb, profesional);
-//
-//        var headers = new HttpHeaders();
-//        headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
-//
-//        return ResponseEntity
-//                .ok()
-//                .headers(headers)
-//                .contentType(MediaType.APPLICATION_PDF)
-//                .body(new InputStreamResource(bis));
-//    }
-//	
-//	
+//		return null;
+//	}
+
+	@GetMapping("/historias/{idPaciente}")
+	public List<HistoriaClinica> getHistoriasByIdPaciente(@PathVariable String idPaciente) {
+		try {
+		List<HistoriaClinica> historias = pacienteService.getPacienteById(idPaciente).getHistoria();
+		
+		return historias;
 	
+		}catch(Exception ex) {
+			logger.error(ex);
+			return new ArrayList<HistoriaClinica>();
+		}
+	}
+	//Historia clinica formato PDF 
+	
+	/**
+	 * 
+	 * @param idPaciente
+	 * @return Historia Clinica completa en formato PDF
+	 */
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
+	@RequestMapping(value = "/historiaspdf/{idPaciente}", method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<InputStreamResource> getListHistoriaClinica(@PathVariable String idPaciente) {
+		
+		Paciente paciente = pacienteService.getPacienteById(idPaciente); 
+
+		List<HistoriaClinica> historiasDb = pacienteService.getAllHistoriaByPaciente(paciente);
+		
+		Profesional profesional = pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
+
+        ByteArrayInputStream responseHistorias = GeneratePdfReport.historiaClinica(historiasDb, profesional);
+
+        var headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=historiaClinica"+
+        paciente.getApellido() + paciente.getNombre() + ".pdf");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(responseHistorias));
+    }
+	
+	/**
+	 * 
+	 * @param idPaciente
+	 * @return Historia Clinica completa en formato PDF
+	 */
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
+	@RequestMapping(value = "/historiapdf/{idPaciente}/{date}", method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<InputStreamResource> getListHistoriaClinica(@PathVariable String idPaciente, @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+		
+		Paciente paciente = pacienteService.getPacienteById(idPaciente); 
+
+		List<HistoriaClinica> historia= pacienteService.getHistoriaByDate(paciente, date);
+		
+		Profesional profesional = paciente.getP();
+
+        ByteArrayInputStream responseHistoria = GeneratePdfReport.historiaClinica(historia, profesional);
+
+        var headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=historia"+ date.toString() +".pdf");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(responseHistoria));
+    }
+	
+	
+
 }

@@ -13,7 +13,7 @@ import ar.com.llegolaslutz.atencionpsicologica.entity.Paciente;
 
 public interface I_HistoriaClinicaRepository extends CrudRepository<HistoriaClinica, Long> {
 	
-	public HistoriaClinica findByIdPacienteAndDate(Paciente paciente, LocalDate date);
+	public List<HistoriaClinica> findByIdPacienteAndDate(Paciente idPaciente, LocalDate date);
 
     public List<HistoriaClinica> findByIdPaciente(Paciente idPaciente);
 	

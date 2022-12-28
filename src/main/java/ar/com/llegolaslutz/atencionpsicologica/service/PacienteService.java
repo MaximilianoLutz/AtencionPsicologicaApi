@@ -156,15 +156,8 @@ public class PacienteService implements I_PacienteService {
 		return profesionalDao.save(profesional);
 	}
 	
-	/* User Auth */
-
-	@Override
-	@Transactional(readOnly = true)
-	public Paciente fetchByIdWithProfesional(long id) {
-		
-		return profesionalDao.fetchByIdWithProfesional(id);
-	}
-
+	/* Historia clinica*/
+	
 	@Override
 	@Transactional
 	public HistoriaClinica saveHistoria(HistoriaClinica historia) {
@@ -175,8 +168,8 @@ public class PacienteService implements I_PacienteService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public HistoriaClinica getHistoriaByDate(Paciente paciente, LocalDate date) {
-		HistoriaClinica historia = historaRepository.findByIdPacienteAndDate(paciente, date);
+	public List<HistoriaClinica> getHistoriaByDate(Paciente paciente, LocalDate date) {
+		List<HistoriaClinica> historia = historaRepository.findByIdPacienteAndDate( paciente, date);
 		return historia;
 	}
 

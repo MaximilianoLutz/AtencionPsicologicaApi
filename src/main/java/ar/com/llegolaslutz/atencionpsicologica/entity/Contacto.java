@@ -22,7 +22,7 @@ public class Contacto implements Serializable {
     private String direccion;
     private String telefono;
     private String email;
-    private String ciut;
+    private String cuit;
     private String obraSocial;
     
     
@@ -34,41 +34,41 @@ public class Contacto implements Serializable {
     public Contacto() {
     }
     
-    public Contacto(String direccion, String telefono, String email, String ciut, String obraSocial, Paciente idPaciente) {
+    public Contacto(String direccion, String telefono, String email, String cuit, String obraSocial, Paciente idPaciente) {
         this.direccion = direccion;
         this.telefono = telefono;
         this.email = email;
-        this.ciut = ciut;
+        this.cuit = cuit;
         this.obraSocial = obraSocial;
         this.idPaciente = idPaciente;
     }
     
-    public Contacto(Long id, String direccion, String telefono, String email, String ciut, String obraSocial, Paciente idPaciente) {
+    public Contacto(Long id, String direccion, String telefono, String email, String cuit, String obraSocial, Paciente idPaciente) {
     	this.id = Long.valueOf(id);
         this.direccion = direccion;
         this.telefono = telefono;
         this.email = email;
-        this.ciut = ciut;
+        this.cuit = cuit;
         this.obraSocial = obraSocial;
         this.idPaciente = idPaciente;
     }
-    public Contacto(Long id, String direccion, String telefono, String email, String ciut, String obraSocial) {
+    public Contacto(Long id, String direccion, String telefono, String email, String cuit, String obraSocial) {
     	this.id = Long.valueOf(id);
         this.direccion = direccion;
         this.telefono = telefono;
         this.email = email;
-        this.ciut = ciut;
+        this.cuit = cuit;
         this.obraSocial = obraSocial;
     
     }
 
 
-    public Contacto(Paciente paciente, String direccion, String telefono, String email, String ciut, String obraSocial, Paciente idPaciente) {
+    public Contacto(Paciente paciente, String direccion, String telefono, String email, String cuit, String obraSocial, Paciente idPaciente) {
         this.id = paciente.getContacto().getId();
         this.direccion = direccion;
         this.telefono = telefono;
         this.email = email;
-        this.ciut = ciut;
+        this.cuit = cuit;
         this.obraSocial = obraSocial;
         this.idPaciente = idPaciente;
     }
@@ -106,12 +106,12 @@ public class Contacto implements Serializable {
         this.email = email;
     }
 
-    public String getCiut() {
-        return ciut;
+    public String getcuit() {
+        return cuit;
     }
 
-    public void setCiut(String ciut) {
-        this.ciut = ciut;
+    public void setcuit(String cuit) {
+        this.cuit = cuit;
     }
 
     public String getObraSocial() {
@@ -132,7 +132,7 @@ public class Contacto implements Serializable {
 
     @Override
     public String toString() {
-        return "Contacto{" + "id=" + id + ", direccion=" + direccion + ", telefono=" + telefono + ", email=" + email + ", ciut=" + ciut + ", obraSocial=" + obraSocial + ", idPaciente=" + idPaciente + '}';
+        return "Contacto{" + "id=" + id + ", direccion=" + direccion + ", telefono=" + telefono + ", email=" + email + ", cuit=" + cuit + ", obraSocial=" + obraSocial + ", idPaciente=" + idPaciente + '}';
     }
     
     

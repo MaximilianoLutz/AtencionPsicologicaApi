@@ -53,8 +53,8 @@ public class UserController {
 	
 	@PostMapping("/user")
 	@ResponseStatus(HttpStatus.CREATED)
-	public UserAuth createUser(@RequestBody UserAuth userAuth) {
-		
+	public UserAuth createUser(@RequestBody UserAuth userAuth)  {
+		try {
 		logger.info(userAuth);
 		Role role = new Role();
 		role.setUid(1L);
@@ -66,6 +66,10 @@ public class UserController {
 		userAuth.setRoles(roles);
 		
 		return usuarioService.save(userAuth);
+		}catch(Exception ex) {
+			logger.error(ex);
+			return new UserAuth();
+		}
 	}
 	
 	@PutMapping("/user")

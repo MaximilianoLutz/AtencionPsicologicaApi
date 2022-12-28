@@ -59,14 +59,12 @@ public interface I_PacienteService {
 	public Profesional saveProfesional(Profesional profesional);
 
 	public Profesional getProfesionalByIdHex(String idHex);
-	
-	public Paciente fetchByIdWithProfesional (long id);
-	
+		
 	
 	//HISTORIA CLINICA
 	
 	public HistoriaClinica saveHistoria (HistoriaClinica historia);
-	public HistoriaClinica getHistoriaByDate(Paciente paciente, LocalDate date);
+	public List<HistoriaClinica> getHistoriaByDate(Paciente paciente, LocalDate date);
     public List<HistoriaClinica> getAllHistoriaByPaciente(Paciente paciente);
 
     
