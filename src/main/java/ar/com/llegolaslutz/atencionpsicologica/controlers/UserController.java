@@ -1,15 +1,22 @@
 package ar.com.llegolaslutz.atencionpsicologica.controlers;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -27,59 +34,131 @@ import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.Role;
 import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.UserAuth;
 import ar.com.llegolaslutz.atencionpsicologica.service.I_UsuarioAuthService;
 import ch.qos.logback.core.net.SyslogOutputStream;
+import net.bytebuddy.utility.RandomString;
 
-@CrossOrigin(origins = "*", methods= {RequestMethod.GET,RequestMethod.POST, RequestMethod.PUT})
+@CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT })
 @RestController
 @RequestMapping("/api")
 public class UserController {
-	
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
-	
-	@Autowired 
+
+	@Autowired
 	public I_UsuarioAuthService usuarioService;
-	
+
 	@Autowired
 	public BCryptPasswordEncoder bCryptPasswordEncoder;
 	
-	@Secured({"ROLE_ADMIN", "ROLE_USER"})
+	@Autowired
+	private JavaMailSenderImpl mailSender;
+	
+	
+
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
 	@RequestMapping("/user/{id}")
 	public UserAuth getUser(@PathVariable String id) {
-		
+
 		UserAuth user = usuarioService.findByUid(id);
-		
+
 		return user;
 	}
-	
 	
 	@PostMapping("/user")
 	@ResponseStatus(HttpStatus.CREATED)
 	public UserAuth createUser(@RequestBody UserAuth userAuth) {
-		
+
 		logger.info(userAuth);
 		Role role = new Role();
 		role.setUid(1L);
 		role.setName("ROLE_USER");
 		List<Role> roles = Arrays.asList(role);
 		String pass = userAuth.getPassword();
-		
+
 		userAuth.setPassword(bCryptPasswordEncoder.encode(pass));
 		userAuth.setRoles(roles);
-		
+
 		return usuarioService.save(userAuth);
 	}
-	
+
 	@PutMapping("/user")
 	@ResponseStatus(HttpStatus.CREATED)
 	public UserAuth updateUser(@RequestBody UserAuth userAuth) {
-		
+
 		logger.info(userAuth);
-	
+
 		UserAuth uAuth = usuarioService.findByUid(userAuth.getUid());
-		
+
 		logger.info(uAuth);
-	
+
 		uAuth.setEnabled(true);
 		return usuarioService.save(uAuth);
 	}
 
+	/*
+	 * Forgotten password controller
+	 */
+	@PostMapping("/forgottenPassword")
+	public Boolean processForgotPassword(@RequestBody Forgotten data) {
+		
+		String email = data.getEmail();
+		 String token = RandomString.make(30);
+		try {
+			usuarioService.updateResetPasswordToken(token, email);
+			
+			String resetPasswordLink = "doredin" + "/reset_password?token=" + token;
+			System.out.println(resetPasswordLink);
+			sendEmail(email, resetPasswordLink);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+	}
+
+	public void sendEmail(String recipientEmail, String link)
+	        throws MessagingException, UnsupportedEncodingException {
+	    MimeMessage message = mailSender.createMimeMessage();              
+	    MimeMessageHelper helper = new MimeMessageHelper(message);
+	     
+	    helper.setFrom("mlutzdev@gmail.com", "Atención Psicológica App");
+	    helper.setTo(recipientEmail);
+	     
+	    String subject = "Aquí se encuentra el link para reestablecer tu contraseña";
+	     
+	    String content = "<p>Hola,</p>"
+	            + "<p>Has solicitado reestablecer tu contraseña.</p>"
+	            + "<p>Puedes hacer click en el enlace que se encuentra debajo:</p>"
+	            + "<p><a href=\"" + link + "\">Cambiar contraseña</a></p>"
+	            + "<br>"
+	            + "<p>Ignora este email si recuerdas tu contraseña, "
+	            + "o si no hubieses solicitado el cambio de contraseña.</p>";
+	     
+	    helper.setSubject(subject);
+	     
+	    helper.setText(content, true);
+	     
+	    mailSender.send(message);
+	}
+
 }
+
+ class Forgotten{
+	 private String email;
+	 private String url;
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
+	}
+	 
+	 
+ }

@@ -35,7 +35,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
 		
 		security.tokenKeyAccess("permitAll()") //permiso de ingreso a la ruta del login.. generar el token al utenticarse
-		.checkTokenAccess("isAuthenticated()"); //dar permiso al endpoint q se encarga de validar el touen
+		.checkTokenAccess("isAuthenticated()"); //dar permiso al endpoint q se encarga de validar el token
 	}
 
 	@Override

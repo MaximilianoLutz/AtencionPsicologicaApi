@@ -39,11 +39,10 @@ public class UserAuth implements Serializable {
 	@Column(length = 60)
 	private String password;
 	private Boolean enabled;
-
-	// manytomany crea tabla intermedia .. relacion en 1 solo sentido aca.. no tiene
-	// sentido obtener el usuario desde roles..
-	// para hacerlo de ida y vuelta habria q poner en la clase ROle un alista de
-	// usuarios @MAnytoMany (MappedBy= "roles") nombre de atribyto
+	@Column(name = "reset_password_token")
+	private String resetPasswordToken;
+	
+	
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
 	@JoinTable(name = "Users_Authorities", joinColumns = @JoinColumn(name = "Uid"), inverseJoinColumns = @JoinColumn(name = "Rid"), uniqueConstraints = @UniqueConstraint(columnNames = {
 			"Uid", "Rid" }))
@@ -112,21 +111,21 @@ public class UserAuth implements Serializable {
 	public void setProfesionales(List<Profesional> profesionales) {
 		this.profesionales = profesionales;
 	}
-
 	
-
-
-	@Override
-	public String toString() {
-		final int maxLen = 10;
-		return "UserAuth [uid=" + uid + ", username=" + username + ", email=" + email + ", password=" + password
-				+ ", enabled=" + enabled + ", roles="
-				+ (roles != null ? roles.subList(0, Math.min(roles.size(), maxLen)) : null) + ", profesionales="
-				+ (profesionales != null ? profesionales.subList(0, Math.min(profesionales.size(), maxLen)) : null)
-				+ "]";
+	public String getResetPasswordToken() {
+		return resetPasswordToken;
 	}
 
+	public void setResetPasswordToken(String resetPasswordToken) {
+		this.resetPasswordToken = resetPasswordToken;
+	}
 
+    @Override
+	public String toString() {
+		return "UserAuth [uid=" + uid + ", username=" + username + ", email=" + email + ", password=" + password
+				+ ", enabled=" + enabled + ", resetPasswordToken=" + resetPasswordToken + ", roles=" + roles
+				+ ", profesionales=" + profesionales + "]";
+	}
 
 
 	/**

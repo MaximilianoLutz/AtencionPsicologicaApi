@@ -1,17 +1,13 @@
 package ar.com.llegolaslutz.atencionpsicologica.controlers;
 
-import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.ui.Model;
@@ -88,12 +84,7 @@ public class PacienteController {
 		paciente.setP(pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex()));
 		logger.info("---------------------------------------------------------------");
 		logger.info(paciente);
-//		c.setCiut(paciente.getContacto().getCiut());
-//		c.setEmail(paciente.getContacto().getEmail());
-//		c.setDireccion(paciente.getContacto().getDireccion());
-//		c.setObraSocial(paciente.getContacto().getObraSocial());
-//		paciente.setContacto(c);
-//		logger.info(c);
+
 		return pacienteService.savePaciente(paciente);		
 		
 	}
@@ -122,7 +113,6 @@ public class PacienteController {
 		//solo podra acceder a los pacientes del usuario activo
 		Profesional profe =  pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
 			
-			logger.info(profe);
 			
 			Paciente pacienteDb  = profe.getPacientes()
 							.stream()
@@ -130,23 +120,15 @@ public class PacienteController {
 			
 			if(pacienteDb.getDatosFiliatorios() != null) {
 				if(pacienteDb.getDatosFiliatorios().getId() > 0) logger.info(pacienteDb.getDatosFiliatorios().getId());
-
-				
-				logger.info("------------- hay ctacto ----------");
 				
 				paciente.getDatosFiliatorios().setId(pacienteDb.getDatosFiliatorios().getId());
 				pacienteDb.setDatosFiliatorios(paciente.getDatosFiliatorios());
 				logger.info(pacienteDb.getDatosFiliatorios());
 				return pacienteService.saveDatosFiliatorios(pacienteDb.getDatosFiliatorios());
 				
-				
 			}
 			DatosFiliatorios datos = paciente.getDatosFiliatorios();
 			datos.setIdPaciente(pacienteDb);
-			
-			logger.info("-----------------nulll---------------------------");
-			logger.info(pacienteDb.getDatosFiliatorios());
-			
 			
 			return pacienteService.saveDatosFiliatorios(datos);
 		
@@ -158,9 +140,7 @@ public class PacienteController {
 		
 		//solo podra acceder a los pacientes del usuario activo
 		Profesional profe =  pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-			
-			logger.info(profe);
-			
+
 			Paciente pacienteDb  = profe.getPacientes()
 							.stream()
 							.filter(p -> p.getId() == paciente.getId()).findAny().orElse(null);
@@ -168,8 +148,6 @@ public class PacienteController {
 			if(pacienteDb.getDatosFiliatorios() != null) {
 				if(pacienteDb.getDatosFiliatorios().getId() > 0) logger.info(pacienteDb.getDatosFiliatorios().getId());
 
-				
-				logger.info("------------- hay ctacto ----------");
 				
 				paciente.getDatosFiliatorios().setId(pacienteDb.getDatosFiliatorios().getId());
 				paciente.getDatosFiliatorios().setIdPaciente(pacienteDb);
@@ -183,7 +161,6 @@ public class PacienteController {
 			DatosFiliatorios datos = paciente.getDatosFiliatorios();
 			datos.setIdPaciente(pacienteDb);
 			
-			logger.info("-----------------nulll---------------------------");
 			logger.info(pacienteDb.getDatosFiliatorios());
 			
 			
@@ -197,9 +174,7 @@ public class PacienteController {
 	public Contacto saveContacto(@RequestBody Paciente paciente) {
 		//solo podra acceder a los pacientes del usuario activo
 			Profesional profe =  pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-				
-				logger.info(profe);
-				
+								
 				Paciente pacienteDb  = profe.getPacientes()
 								.stream()
 								.filter(p -> p.getId() == paciente.getId()).findAny().orElse(null);
@@ -209,8 +184,6 @@ public class PacienteController {
 				if(pacienteDb.getContacto() != null) {
 					if(pacienteDb.getContacto().getId() > 0) logger.info(pacienteDb.getContacto().getId());
 
-					
-					logger.info("------------- hay ctacto ----------");
 					paciente.getContacto().setId(pacienteDb);
 					pacienteDb.setContacto(paciente.getContacto());
 					
@@ -222,7 +195,6 @@ public class PacienteController {
 				Contacto contacto = paciente.getContacto();
 				contacto.setIdPaciente(pacienteDb);
 				
-				logger.info("-----------------nulll---------------------------");
 				logger.info(pacienteDb.getContacto());
 				
 				
@@ -247,17 +219,6 @@ public class PacienteController {
 		return pacienteService.saveHistoria(historia);
 	}
 	
-	@GetMapping("/historia")
-	public String getHistoria(@RequestBody HistoriaClinica historia, Model model) {
-		
-		HistoriaClinica historiaDb = pacienteService.getHistoriaByDate(historia.getIdPaciente(), historia.getDate());
-		
-		if(historiaDb == null) return null;
-		
-		model.addAttribute("historia", historiaDb);
-		
-		return "historia/ver";
-	}
 	
 	@GetMapping("/historia/{date}{idPaciente}")
 	public ResponseEntity<Resource> getHistoriaPdf(@PathVariable LocalDate date, @PathVariable String idPaciente ) {
@@ -280,30 +241,6 @@ public class PacienteController {
 		return historiasDb;
 	}
 	
-	//PDF
-	
-//	@RequestMapping(value = "/historiaspdf/{idPaciente}", method = RequestMethod.GET,
-//            produces = MediaType.APPLICATION_PDF_VALUE)
-//    public ResponseEntity<InputStreamResource> citiesReport(@PathVariable Long idPaciente) {
-//		
-//		Paciente paciente = pacienteService.getById(idPaciente); 
-//
-//		List<HistoriaClinica> historiasDb = pacienteService.getAllHistoriaByPaciente(paciente);
-//		
-//		Profesional profesional = pacienteService.getProfesionalByIdHex(paciente.getP().getIdHex());
-//
-//        ByteArrayInputStream bis = GeneratePdfReport.historiaClinica(historiasDb, profesional);
-//
-//        var headers = new HttpHeaders();
-//        headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
-//
-//        return ResponseEntity
-//                .ok()
-//                .headers(headers)
-//                .contentType(MediaType.APPLICATION_PDF)
-//                .body(new InputStreamResource(bis));
-//    }
-//	
-//	
+
 	
 }

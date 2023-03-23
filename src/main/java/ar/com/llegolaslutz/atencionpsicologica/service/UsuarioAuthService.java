@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.UserAuth;
 import ar.com.llegolaslutz.atencionpsicologica.repository.I_UserAuthRepository;
 
 @Service							//Interfaz de spring security
-public class UsuarioAuthService implements UserDetailsService, I_UserAuthRepository{
+public class UsuarioAuthService implements UserDetailsService, I_UsuarioAuthService{
 	
 	private Logger logger = LoggerFactory.getLogger(UsuarioAuthService.class);
 	
@@ -83,76 +84,32 @@ public class UsuarioAuthService implements UserDetailsService, I_UserAuthReposit
 		
 		return userAuthRepository.findByEmail(email);
 	}
+	
+
+    public void updateResetPasswordToken(String token, String email) throws UsernameNotFoundException {
+        UserAuth user = userAuthRepository.findByEmail(email);
+        if (user != null) {
+            user.setResetPasswordToken(token);
+            userAuthRepository.save(user);
+        } else {
+            throw new UsernameNotFoundException("No se encontro usuario con el email " + email);
+        }
+    }
+     
+    public UserAuth getByResetPasswordToken(String token) {
+        return userAuthRepository.findByResetPasswordToken(token);
+    }
+     
+    public void updatePassword(UserAuth user , String newPassword) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+         
+        user.setResetPasswordToken(null);
+        userAuthRepository.save(user);
+    }
 
 
-	@Override
-	public <S extends UserAuth> Iterable<S> saveAll(Iterable<S> entities) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-
-	@Override
-	public Optional<UserAuth> findById(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public boolean existsById(String id) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-
-	@Override
-	public Iterable<UserAuth> findAll() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public Iterable<UserAuth> findAllById(Iterable<String> ids) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public long count() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	@Override
-	public void deleteById(String id) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void deleteAllById(Iterable<? extends String> ids) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void deleteAll(Iterable<? extends UserAuth> entities) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void deleteAll() {
-		// TODO Auto-generated method stub
-		
-	}
-
-
+     
 }

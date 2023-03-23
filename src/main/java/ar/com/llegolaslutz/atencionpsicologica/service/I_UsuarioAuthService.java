@@ -6,18 +6,22 @@ import org.springframework.stereotype.Service;
 import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.UserAuth;
 
 
-public interface I_UsuarioAuthService extends CrudRepository<UserAuth, String> {
+public interface I_UsuarioAuthService  {
 
 	public UserAuth findByUsername(String username);
 	
+	public UserAuth findByUid(String uid);
+	
+	public UserAuth save(UserAuth userAuth);
+	
+	public void delete(UserAuth userAuth);
+	
 	public UserAuth findByEmail(String email);
 	
-    public UserAuth findByUid(String uid);
-    
-    public UserAuth save(UserAuth userAuth);
-    
-    public void delete(UserAuth userAuth);
+	public void updateResetPasswordToken(String token, String email);
 	
-
+	 public UserAuth getByResetPasswordToken(String token);
+	 
+	 public void updatePassword(UserAuth user , String newPassword);
 	
 }
