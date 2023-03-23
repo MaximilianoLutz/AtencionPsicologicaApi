@@ -24,6 +24,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter { // s
 	public void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests().antMatchers(HttpMethod.POST, "/api/pacientes").permitAll()
         .antMatchers(HttpMethod.POST, "/api/user").permitAll().antMatchers(HttpMethod.POST, "/api/forgottenPassword").permitAll()
+        .antMatchers(HttpMethod.POST, "/api/restorePassword").permitAll()
 //		.antMatchers(HttpMethod.GET, "/api/pacientes").hasRole("ADMIN")        // partir dando permisos desde lo ma especifico alo mas generico
 //		.antMatchers("/api/pacientes/**").hasRole("ADMIN")    //this commented code will be replace for anottation on each method in controller class
 		.anyRequest().authenticated()   //todas  

@@ -115,6 +115,24 @@ public class UserController {
 		}
 
 	}
+	
+	@PostMapping("/restorePassword")
+	public Boolean processRestorePassword(@RequestBody restorePassword data ) {
+		
+		String token = data.getToken();
+		String password= data.getNewPassword();
+		
+		UserAuth user = usuarioService.getByResetPasswordToken(token);
+		
+		if (user != null) {
+			usuarioService.updatePassword(user, password);
+			
+			return true;
+		}else {
+			return false;
+		}
+		
+	}
 
 	public void sendEmail(String recipientEmail, String link)
 	        throws MessagingException, UnsupportedEncodingException {
@@ -158,6 +176,25 @@ public class UserController {
 	public void setUrl(String url) {
 		this.url = url;
 	}
+	
+ }
+	
+	 class restorePassword{
+		 private String newPassword;
+		 private String token;
+		 
+		public String getNewPassword() {
+			return newPassword;
+		}
+		public void setNewPassword(String newPassword) {
+			this.newPassword = newPassword;
+		}
+		public String getToken() {
+			return token;
+		}
+		public void setToken(String token) {
+			this.token = token;
+		} 
 	 
 	 
  }
