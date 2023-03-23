@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.Role;
 import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.UserAuth;
 import ar.com.llegolaslutz.atencionpsicologica.service.I_UsuarioAuthService;
-import ch.qos.logback.core.net.SyslogOutputStream;
 import net.bytebuddy.utility.RandomString;
 
 @CrossOrigin(origins = "*", methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT })
