@@ -1,7 +1,6 @@
 package ar.com.llegolaslutz.atencionpsicologica.service;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Service;
+
 
 import ar.com.llegolaslutz.atencionpsicologica.models.entity.auth.UserAuth;
 
